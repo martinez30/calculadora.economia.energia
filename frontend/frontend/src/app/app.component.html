@@ -1,0 +1,304 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4 sm:p-6">
+  <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-2xl">
+    <!-- Cabeçalho -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+        🌱 Calculadora de Economia com Energia Limpa
+      </h1>
+      <p class="text-base sm:text-lg text-gray-600">
+        Descubra quanto você pode economizar migrando para energia renovável
+      </p>
+    </div>
+
+    <!-- Card do Formulário -->
+    <form [formGroup]="formulario" (ngSubmit)="calcular()" class="space-y-6">
+      <!-- Estado -->
+      <div>
+        <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">
+          Selecione seu Estado
+        </label>
+        <select
+          id="estado"
+          formControlName="estado"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+        >
+          <option value="">Selecione um estado</option>
+          <option *ngFor="let estado of estados" [value]="estado.uf">
+            {{ estado.estado }} ({{ estado.uf }})
+          </option>
+        </select>
+        <div *ngIf="getFormControl('estado')?.invalid && getFormControl('estado')?.touched"
+            class="mt-1 text-sm text-red-600">
+          Estado é obrigatório
+        </div>
+      </div>
+
+      <!-- Distribuidora -->
+      <div>
+        <label for="distribuidora" class="block text-sm font-medium text-gray-700 mb-2">
+          Distribuidora de Energia
+        </label>
+        <select
+          id="distribuidora"
+          formControlName="distribuidora"
+          [disabled]="!getFormControl('estado')?.value || carregandoDistribuidoras"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+        >
+          <option value="">
+            {{ carregandoDistribuidoras ? 'Carregando...' : (distribuidoras.length > 0 ? 'Selecione sua distribuidora' : 'Selecione o estado primeiro') }}
+          </option>
+          <option *ngFor="let dist of distribuidoras" [value]="dist.id">
+            {{ dist.nome }}
+          </option>
+        </select>
+        <div *ngIf="getFormControl('distribuidora')?.invalid && getFormControl('distribuidora')?.touched"
+            class="mt-1 text-sm text-red-600">
+          Distribuidora é obrigatória
+        </div>
+        <p class="text-sm text-gray-500 mt-2" *ngIf="distribuidoras.length > 0">
+          A tarifa será calculada automaticamente para sua distribuidora
+        </p>
+      </div>
+
+      <!-- Valor da Conta -->
+      <div>
+        <label for="conta" class="block text-sm font-medium text-gray-700 mb-2">
+          💰 Valor atual da sua conta de energia (R$)
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="text-gray-500">R$</span>
+          </div>
+          <input
+            type="number"
+            id="conta"
+            formControlName="valorContaAtual"
+            min="0"
+            step="0.01"
+            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+            placeholder="Ex: 450,50"
+          />
+        </div>
+        <div *ngIf="getFormControl('valorContaAtual')?.invalid && getFormControl('valorContaAtual')?.touched"
+            class="mt-1 text-sm text-red-600">
+          <span *ngIf="getFormControl('valorContaAtual')?.errors?.['required']">
+            Valor da conta é obrigatório
+          </span>
+          <span *ngIf="getFormControl('valorContaAtual')?.errors?.['min']">
+            Valor deve ser maior que zero
+          </span>
+        </div>
+        <p class="text-sm text-gray-500 mt-2">
+          Informe o valor total da sua última conta de energia
+        </p>
+      </div>
+
+      <!-- Botões -->
+      <div class="pt-4 flex flex-col sm:flex-row gap-4">
+        <button
+          type="submit"
+          [disabled]="carregando || formulario.invalid"
+          class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
+        >
+          <span *ngIf="!carregando" class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            Calcular Economia
+          </span>
+          <span *ngIf="carregando" class="flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Calculando...
+          </span>
+        </button>
+        <button
+          type="button"
+          (click)="formulario.reset()"
+          class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Limpar
+        </button>
+      </div>
+
+      <!-- Mensagem de Erro -->
+      <div *ngIf="errorMessage" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-700 text-sm">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Mensagem de instrução -->
+      <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-blue-700">
+              <strong>Como funciona o cálculo:</strong> 
+              Com base no valor da sua conta e na tarifa de energia limpa do seu estado, 
+              calculamos quanto você pagaria com energia renovável e sua economia potencial.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagem de alerta vermelho -->
+      <div class="p-3 bg-red-50 border border-red-300 rounded-lg">
+        <div class="flex">
+          <svg class="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          <div class="ml-3">
+            <p class="text-sm text-red-800">
+              <strong>Importante: Resultado aproximado</strong> Este valor é uma estimativa baseada em dados atuais e está sujeito a alterações. Utilize como referência para sua análise inicial.
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Resultado -->
+    <div *ngIf="result" class="mt-8 animate-fade-in">
+      <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Resultado da Simulação
+          </h2>
+          <button
+            (click)="result = null"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <!-- Valor atual -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border">
+            <p class="text-sm text-gray-600">Valor atual da conta</p>
+            <p class="text-2xl font-bold text-gray-800 mt-1">
+              {{ formatarMoeda(result.valorContaAtual) }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Por mês</p>
+          </div>
+
+          <!-- Nova conta -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border border-green-200">
+            <p class="text-sm text-gray-600">Com energia limpa</p>
+            <p class="text-2xl font-bold text-green-700 mt-1">
+              {{ formatarMoeda(result.custoMensalEnergiaLimpa) }}
+            </p>
+            <p class="text-xs text-green-600 mt-1">Estimativa mensal</p>
+          </div>
+
+          <!-- Consumo estimado -->
+          <div class="bg-white p-4 rounded-xl shadow-sm border">
+            <p class="text-sm text-gray-600">Consumo estimado</p>
+            <p class="text-2xl font-bold text-blue-700 mt-1">
+              {{ result.consumoEstimado.toFixed(0) }} kWh
+            </p>
+            <p class="text-xs text-blue-600 mt-1">Baseado na tarifa</p>
+          </div>
+        </div>
+
+        <!-- Economias -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Economia Mensal -->
+          <div class="p-5 bg-white rounded-xl shadow-sm border-2 border-green-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-green-800">Economia Mensal</p>
+                <p class="text-xs text-green-600">Comparado à energia convencional</p>
+              </div>
+              <div class="text-right">
+                <p class="text-3xl font-bold text-green-700">
+                  {{ formatarMoeda(result.economiaMensal) }}
+                </p>
+                <p class="text-sm text-green-600 mt-1">por mês</p>
+              </div>
+            </div>
+            <div class="mt-4 w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-green-600 h-2 rounded-full" [style.width.%]="result.desconto"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 text-right">
+              {{ result.desconto }}% de economia
+            </p>
+          </div>
+
+          <!-- Economia Anual -->
+          <div class="p-5 bg-white rounded-xl shadow-sm border-2 border-emerald-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-emerald-800">Economia Anual</p>
+                <p class="text-xs text-emerald-600">Economia acumulada em 12 meses</p>
+              </div>
+              <div class="text-right">
+                <p class="text-3xl font-bold text-emerald-700">
+                  {{ formatarMoeda(result.economiaAnual) }}
+                </p>
+                <p class="text-sm text-emerald-600 mt-1">por ano</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <p class="text-xs text-gray-600">
+                💡 Em {{ result.yearsToROI }} anos, você economiza o valor de uma instalação solar típica
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nota de rodapé -->
+        <div class="mt-6 pt-4 border-t border-green-200">
+          <p class="text-xs text-gray-500">
+            * Valores estimados com base na tarifa média de energia limpa para {{ getStateName() }}.
+            Para uma análise personalizada, consulte um especialista em energia renovável.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informações adicionais -->
+    <div *ngIf="!result" class="mt-8">
+      <div class="bg-gray-50 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Por que escolher energia limpa?
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+              <span class="text-green-600 font-bold">$</span>
+            </div>
+            <div>
+              <p class="font-medium text-gray-800">Economia Financeira</p>
+              <p class="text-sm text-gray-600">Redução de até 95% na conta de energia</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <span class="text-blue-600 font-bold">🌍</span>
+            </div>
+            <div>
+              <p class="font-medium text-gray-800">Sustentabilidade</p>
+              <p class="text-sm text-gray-600">Redução da pegada de carbono</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,204 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Cabeçalho -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">
+        🌱 Calculadora de Economia com Energia Limpa
+      </h1>
+      <p class="text-lg text-gray-600">
+        Descubra quanto você pode economizar migrando para energia renovável
+      </p>
+    </div>
+
+    <!-- Card Principal -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Coluna do Formulário -->
+        <div>
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6">
+            Preencha os dados
+          </h2>
+
+          <form [formGroup]="formulario" (ngSubmit)="calcular()">
+            <!-- Seletor de Estado -->
+            <div class="mb-6">
+              <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">
+                Estado (UF)
+              </label>
+              <select
+                id="estado"
+                formControlName="estado"
+                class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white"
+              >
+                <option value="">Selecione seu estado</option>
+                <option *ngFor="let estado of estados" [value]="estado.uf">
+                  {{ estado.estado }} ({{ estado.uf }})
+                </option>
+              </select>
+              <div *ngIf="getFormControl('estado')?.invalid && getFormControl('estado')?.touched"
+                  class="mt-1 text-sm text-red-600">
+                Estado é obrigatório
+              </div>
+            </div>
+
+            <!-- Seletor de Distribuidora -->
+            <div class="mb-6">
+              <label for="distribuidora" class="block text-sm font-medium text-gray-700 mb-2">
+                Distribuidora de Energia
+              </label>
+              <select
+                id="distribuidora"
+                formControlName="distribuidora"
+                [disabled]="!getFormControl('estado')?.value || carregandoDistribuidoras"
+                class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {{ carregandoDistribuidoras ? 'Carregando...' : (distribuidoras.length > 0 ? 'Selecione sua distribuidora' : 'Selecione o estado primeiro') }}
+                </option>
+                <option *ngFor="let dist of distribuidoras" [value]="dist.id">
+                  {{ dist.nome }} (TE: R$ {{ (dist.tarifa_te / 1000).toFixed(4) }}/kWh + TUSD: R$ {{ (dist.tarifa_tusd / 1000).toFixed(4) }}/kWh)
+                </option>
+              </select>
+              <div *ngIf="getFormControl('distribuidora')?.invalid && getFormControl('distribuidora')?.touched"
+                  class="mt-1 text-sm text-red-600">
+                Distribuidora é obrigatória
+              </div>
+              <p class="mt-2 text-sm text-gray-500" *ngIf="distribuidoras.length > 0">
+                A tarifa total será calculada automaticamente (TE + TUSD)
+              </p>
+            </div>
+
+            <!-- Consumo Mensal -->
+            <div class="mb-6">
+              <label for="consumo" class="block text-sm font-medium text-gray-700 mb-2">
+                Consumo Mensal (kWh)
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  id="consumo"
+                  formControlName="consumoMensalKwh"
+                  placeholder="Ex: 300"
+                  class="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                />
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500">kWh</span>
+                </div>
+              </div>
+              <div *ngIf="getFormControl('consumoMensalKwh')?.invalid && getFormControl('consumoMensalKwh')?.touched" 
+                  class="mt-1 text-sm text-red-600">
+                <span *ngIf="getFormControl('consumoMensalKwh')?.errors?.['required']">
+                  Consumo mensal é obrigatório
+                </span>
+                <span *ngIf="getFormControl('consumoMensalKwh')?.errors?.['min']">
+                  Consumo mínimo é 1 kWh
+                </span>
+                <span *ngIf="getFormControl('consumoMensalKwh')?.errors?.['max']">
+                  Consumo máximo é 10000 kWh
+                </span>
+              </div>
+            </div>
+
+            <!-- Valor da Conta Atual (Opcional) -->
+            <div class="mb-8">
+              <label for="conta" class="block text-sm font-medium text-gray-700 mb-2">
+                Valor da Conta Atual (Opcional)
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500">R$</span>
+                </div>
+                <input
+                  type="number"
+                  id="conta"
+                  formControlName="valorContaAtual"
+                  placeholder="Ex: 350,00"
+                  step="0.01"
+                  class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                />
+              </div>
+              <p class="mt-2 text-sm text-gray-500">
+                Preencha para ver a economia real comparada à sua conta atual
+              </p>
+            </div>
+
+            <!-- Botão Calcular -->
+            <button
+              type="submit"
+              [disabled]="carregando || formulario.invalid"
+              class="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white font-semibold py-4 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <span *ngIf="!carregando">🔋 Calcular Economia</span>
+              <span *ngIf="carregando" class="flex items-center justify-center">
+                <svg class="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Calculando...
+              </span>
+            </button>
+
+            <!-- Mensagem de Erro -->
+            <div *ngIf="errorMessage" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p class="text-red-700 text-sm">{{ errorMessage }}</p>
+            </div>
+          </form>
+        </div>
+
+        <!-- Coluna de Informações -->
+        <div class="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl p-6">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">
+            💡 Como funciona o cálculo?
+          </h3>
+          
+          <ul class="space-y-4">
+            <li class="flex items-start">
+              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-primary-500 flex items-center justify-center mr-3">
+                <span class="text-white text-sm font-bold">1</span>
+              </div>
+              <p class="text-gray-700">
+                <strong class="text-gray-900">Consumo × Tarifa</strong><br>
+                Multiplicamos seu consumo pela tarifa de energia renovável do seu estado
+              </p>
+            </li>
+            
+            <li class="flex items-start">
+              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-primary-500 flex items-center justify-center mr-3">
+                <span class="text-white text-sm font-bold">2</span>
+              </div>
+              <p class="text-gray-700">
+                <strong class="text-gray-900">Economia Mensal</strong><br>
+                Subtraímos o valor da conta atual do custo com energia limpa
+              </p>
+            </li>
+            
+            <li class="flex items-start">
+              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-primary-500 flex items-center justify-center mr-3">
+                <span class="text-white text-sm font-bold">3</span>
+              </div>
+              <p class="text-gray-700">
+                <strong class="text-gray-900">Economia Anual</strong><br>
+                Multiplicamos a economia mensal por 12 meses
+              </p>
+            </li>
+          </ul>
+
+          <div class="mt-8 p-4 bg-white rounded-lg border border-gray-200">
+            <h4 class="font-semibold text-gray-800 mb-2">📊 Exemplo (Equatorial GO):</h4>
+            <p class="text-sm text-gray-600">
+              300 kWh × R$ 0,8918 = <strong>R$ 267,54</strong> por mês<br>
+              Economia anual estimada: <strong>até R$ 1.500,00</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Resultado -->
+<app-resultado-modal
+  [resultado]="resultado"
+  [showModal]="showModal"
+  (fechar)="fecharModal()"
+></app-resultado-modal>
