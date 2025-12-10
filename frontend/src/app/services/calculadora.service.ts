@@ -7,7 +7,7 @@ import { Calculo, ResultadoCalculo } from '../models/Calculo.model';
   providedIn: 'root'
 })
 export class CalculadoraComplexaService {
-  private apiUrl = 'http://localhost:3000/api/calculadora';
+  private apiUrl = 'https://calculadora-economia-energia-wm1y.onrender.com/api/calculadora';
 
   constructor(private http: HttpClient) { }
 

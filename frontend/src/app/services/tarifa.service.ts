@@ -7,7 +7,7 @@ import { Distribuidora } from '../models/Tarifa.model';
   providedIn: 'root'
 })
 export class TarifaService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = 'https://calculadora-economia-energia-wm1y.onrender.com/api';
 
   constructor(private http: HttpClient) { }
 
