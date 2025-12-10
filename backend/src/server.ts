@@ -41,7 +41,7 @@ async function startServer() {
     console.log('✅ Banco de dados inicializado com sucesso');
 
     // Depois iniciar o servidor
-    app.listen(PORT, () => {
+    app.listen(Number(PORT), "0.0.0.0", () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📊 API disponível em http://localhost:${PORT}/api/tarifas`);
       console.log(`🧮 API Calculadora disponível em http://localhost:${PORT}/api/calculadora`);
