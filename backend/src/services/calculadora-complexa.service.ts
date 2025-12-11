@@ -133,7 +133,7 @@ export class CalculadoraComplexaService {
       );
 
       // 5. Calcular consumo médio e compensável
-      const consumoMedio = request.valor_fatura / tarifaBase;
+      const consumoMedio = request.valor_fatura / tarifaConsumoFinal;
       const custoDisponibilidade = await getCustoDisponibilidade(consumoMedio);
       const consumoCompensavel = Math.max(0, consumoMedio - custoDisponibilidade);
 

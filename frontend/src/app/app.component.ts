@@ -121,7 +121,7 @@ export class AppComponent implements OnInit {
       next: (resultado) => {
         this.result = {
           distribuidora: distribuidora.nome,
-          yearsToROI: Math.ceil(15000 / (resultado.economia * 12)),
+          yearsToROI: Math.ceil(Number(this.formulario.value.valorContaAtual) / (resultado.economia)),
           tarifa_te: resultado.detalhes.tarifa_te,
           tarifa_tusd: resultado.detalhes.tarifa_tusd,
           consumoEstimado: resultado.consumo_medio,
