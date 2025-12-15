@@ -9,8 +9,7 @@ import { CalculadoraComplexaService } from './services/calculadora.service';
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
   title = 'Calculadora de Economia de Energia Limpa';
@@ -37,7 +36,6 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.carregarEstados();
 
-    // Observar mudanças no campo estado
     this.formulario.get('estado')?.valueChanges.subscribe((uf) => {
       if (uf) {
         this.carregarDistribuidoras(uf);

@@ -9,14 +9,10 @@ export class CalculadoraComplexaController {
     this.calculadoraService = new CalculadoraComplexaService();
   }
 
-  /**
-   * Endpoint principal para cálculo complexo
-   */
   async calcularComplexo(req: Request, res: Response): Promise<void> {
     try {
       const request: CalculoComplexoRequest = req.body;
 
-      // Validar request
       const errors = this.calculadoraService.validarRequest(request);
       if (errors.length > 0) {
         res.status(400).json({ 
@@ -26,11 +22,8 @@ export class CalculadoraComplexaController {
         return;
       }
 
-      // Executar cálculo
       const resultado = await this.calculadoraService.calcular(request);
-      
       res.json(resultado);
-
     } catch (error: any) {
       console.error('Erro no controller de cálculo complexo:', error);
       
@@ -45,9 +38,6 @@ export class CalculadoraComplexaController {
     }
   }
 
-  /**
-   * Endpoint para buscar distribuidoras por UF
-   */
   async getDistribuidorasPorUF(req: Request, res: Response): Promise<void> {
     try {
       const { uf } = req.params;
@@ -68,9 +58,6 @@ export class CalculadoraComplexaController {
     }
   }
 
-  /**
-   * Endpoint para buscar custos de disponibilidade
-   */
   async getCustosDisponibilidade(req: Request, res: Response): Promise<void> {
     try {
       const { getAllCustosDisponibilidade } = await import('../db');

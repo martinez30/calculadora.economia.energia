@@ -1,4 +1,3 @@
-// tarifa.controller.ts
 import { Request, Response } from 'express';
 import { queryAll, queryGet } from '../db';
 import { 
@@ -8,7 +7,6 @@ import {
 } from '../models/Tarifa.model';
 
 export class TarifasController {
-  // Buscar todas as tarifas
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
       const rows = await queryAll<TarifaRow>('SELECT * FROM tarifas ORDER BY estado');
@@ -19,7 +17,6 @@ export class TarifasController {
     }
   }
 
-  // Buscar tarifas apenas de UFs que têm distribuidoras
   static async getComDistribuidoras(req: Request, res: Response): Promise<void> {
     try {
       const query = `
@@ -36,7 +33,6 @@ export class TarifasController {
     }
   }
 
-  // Buscar tarifa por UF
   static async getByUF(req: Request, res: Response): Promise<void> {
     try {
       const { uf } = req.params;
@@ -60,12 +56,10 @@ export class TarifasController {
     }
   }
 
-  // Calcular economia
   static async calcularEconomia(req: Request, res: Response): Promise<void> {
     try {
       const { uf, consumoMensalKwh, valorContaAtual }: CalculoRequest = req.body;
       
-      // Validação
       if (!uf || uf.length !== 2) {
         res.status(400).json({ error: 'UF deve ter 2 caracteres (ex: GO, SP)' });
         return;
