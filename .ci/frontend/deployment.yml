@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calculadora-front
+  namespace: calculadora
+  labels:
+    app: calculadora-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: calculadora-front
+  template:
+    metadata:
+      labels:
+        app: calculadora-front
+    spec:
+      containers:
+        - name: calculadora-front
+          image: registry.gitlab.com/cytei-br/calculadora_front:${IMAGE_TAG}
+          ports:
+            - containerPort: 80

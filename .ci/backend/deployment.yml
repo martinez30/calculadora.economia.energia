@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calculadora-api
+  namespace: calculadora
+  labels:
+    app: calculadora-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: calculadora-api
+  template:
+    metadata:
+      labels:
+        app: calculadora-api
+    spec:
+      containers:
+        - name: calculadora-api
+          image: registry.gitlab.com/cytei-br/calculadora_api:${IMAGE_TAG}
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secrets

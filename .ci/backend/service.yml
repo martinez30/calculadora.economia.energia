@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: calculadora-api-service
+  namespace: calculadora
+spec:
+  selector:
+    app: calculadora-api
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
